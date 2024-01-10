@@ -57,7 +57,8 @@ class MenuGenerator(object):
             elif "main" in place:
                 menu.InsData(c4d.MENURESOURCE_COMMAND, "PLUGIN_CMD_{}".format(app_id))
             else:
-                menu.InsData(c4d.MENURESOURCE_SEPERATOR, True)
+                # c4d.MENURESOURCE_SEPERATOR renamed in 2024 use int value instead
+                menu.InsData(2, True)
 
         menu.InsData(c4d.MENURESOURCE_SUBMENU, submenu)
         mainMenu.InsData(c4d.MENURESOURCE_STRING, menu)

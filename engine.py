@@ -264,7 +264,6 @@ class CinemaEngine(Engine):
         # tell QT to interpret C strings as utf-8
         utf8 = QtCore.QTextCodec.codecForName("utf-8")
         QtCore.QTextCodec.setCodecForCStrings(utf8)
-        self.logger.debug("set utf-8 codec for widget text")
 
     def init_engine(self):
         """
@@ -521,37 +520,43 @@ class CinemaEngine(Engine):
         """
         self.logger.debug("%s: Destroying...", self)
 
+    def _detect_pyside(self):
+        """Check if Pyside, Pyside2, or PySide6 is available..."""
+
+        try:
+            import PySide6
+        except:
+            self.logger.error("PySide6 not detected...")
+        else:
+            # looks like pyside2 is already working! No need to do anything
+            return True, "PySide6"
+
+        try:
+            import PySide2
+        except:
+            self.logger.error("PySide2 not detected...")
+        else:
+            # looks like pyside2 is already working! No need to do anything
+            return True, "PySide2"
+
+        try:
+            import PySide
+        except:
+            self.logger.error("PySide not detected...")
+        else:
+            # looks like pyside2 is already working! No need to do anything
+            return True, "PySide"
+
+        return False, "No valid version of PySide was detected."
+
     def _init_pyside(self):
         """
         Handles the pyside init
         """
 
-        # first see if pyside2 is present
-        try:
-            from PySide2 import QtGui
-        except:
-            # fine, we don't expect PySide2 to be present just yet
-            self.logger.debug("PySide2 not detected - trying for PySide now...")
-        else:
-            # looks like pyside2 is already working! No need to do anything
-            self.logger.debug(
-                "PySide2 detected - the existing version will be used."
-            )
-            return
-
-        # then see if pyside is present
-        try:
-            from PySide import QtGui
-        except:
-            # must be that a PySide version is not installed,
-            self.logger.debug(
-                "PySide not detected - it will be added to the setup now..."
-            )
-        else:
-            # looks like pyside is already working! No need to do anything
-            self.logger.debug(
-                "PySide detected - the existing version will be used."
-            )
+        pyside_detected, pyside_version = self._detect_pyside()
+        if pyside_detected:
+            self.logger.debug("{} detected!".format(pyside_version))
             return
 
         current_os = sys.platform.lower()
@@ -574,19 +579,17 @@ class CinemaEngine(Engine):
             sys.path.append(os.path.join(desktop_path,
                                          "Python", "Lib", "site-packages"))
 
-
         else:
             self.logger.error("Unknown platform - cannot initialize PySide!")
 
-        # now try to import it
-        try:
-            from PySide import QtGui
-        except Exception as exception:
-            traceback.print_exc()
+        pyside_detected, pyside_version = self._detect_pyside()
+        if pyside_detected:
+            self.logger.debug("{} detected!".format(pyside_version))
+            return
+        else:
             self.logger.error(
                 "PySide could not be imported! Apps using pyside will not "
-                "operate correctly! Error reported: %s",
-                exception,
+                "operate correctly!"
             )
 
     def _get_dialog_parent(self):
