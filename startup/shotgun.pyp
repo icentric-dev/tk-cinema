@@ -188,15 +188,21 @@ def register_plugins():
     c4d.plugins.RegisterMessagePlugin(id=15151510, str="", info=0, dat=SceneChangeEvent())
 
     for item in engine.import_module("tk_cinema").constant_apps.menu_prebuild:
+        logger.debug(f"Processing menu item: {item}")
         if not "separator" in item[-1]:
-            c4d.plugins.RegisterCommandPlugin(
-                id=int(item[-2]),
-                str=item[0],
-                info=c4d.PLUGINFLAG_HIDEPLUGINMENU,
-                help='',
-                icon=None,
-                dat=callbackPlugin(callback=item[0])
-            )
+            try:
+                plugin_id = int(item[-2])
+                c4d.plugins.RegisterCommandPlugin(
+                    id=plugin_id,
+                    str=item[0],
+                    info=c4d.PLUGINFLAG_HIDEPLUGINMENU,
+                    help='',
+                    icon=None,
+                    dat=callbackPlugin(callback=item[0])
+                )
+                logger.debug(f"Registered: {item[0]} with ID {plugin_id}")
+            except Exception as e:
+                logger.debug(f"Failed to register: {item[0]} with error: {e}")
 
 if __name__ == '__main__':
     register_plugins()
